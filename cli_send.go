@@ -17,13 +17,13 @@ func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 	UTXOSet := UTXOSet{bc}
 	defer bc.db.Close()
 
-	wallets, err := NewWallets(nodeID)
+	users, err := NewUsers(nodeID)
 	if err != nil {
 		log.Panic(err)
 	}
-	wallet := wallets.GetWallet(from)
+	user := users.GetUser(from)
 
-	tx := NewUTXOTransaction(&wallet, to, amount, &UTXOSet)
+	tx := NewUTXOTransaction(&user, to, amount, &UTXOSet)
 
 	if mineNow {
 		cbTx := NewCoinbaseTX(from, "")

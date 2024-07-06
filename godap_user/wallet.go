@@ -6,58 +6,54 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
+	b64 "encoding/base64"
 	"log"
-
-	"golang.org/x/crypto/ripemd160"
 )
 
 const version = byte(0x00)
 const addressChecksumLen = 4
 
-// Wallet stores private and public keys
-type Wallet struct {
+// User stores private and public keys
+type User struct {
 	PrivateKey ecdsa.PrivateKey
 	PublicKey  []byte
+	Username   string
 }
 
-// NewWallet creates and returns a Wallet
-func NewWallet() *Wallet {
+// NewUser creates and returns a User
+func NewUser(username string) *User {
 	private, public := newKeyPair()
-	wallet := Wallet{private, public}
+	user := User{private, public, username}
 
-	return &wallet
+	return &user
 }
 
-// GetAddress returns wallet address
-func (w Wallet) GetAddress() []byte {
+// GetAddress returns user address
+func (w User) GetAddress() string {
 	pubKeyHash := HashPubKey(w.PublicKey)
 
-	versionedPayload := append([]byte{version}, pubKeyHash...)
+	versionedPayload := append([]byte{version}, pubKeyHash[:]...)
 	checksum := checksum(versionedPayload)
 
 	fullPayload := append(versionedPayload, checksum...)
-	address := Base58Encode(fullPayload)
+	address := b64.StdEncoding.EncodeToString(fullPayload)
 
 	return address
 }
 
 // HashPubKey hashes public key
-func HashPubKey(pubKey []byte) []byte {
-	publicSHA256 := sha256.Sum256(pubKey)
+func HashPubKey(pubKey []byte) [sha256.Size]byte {
+	hash := sha256.Sum256(pubKey)
+	return sha256.Sum256(hash[:])
 
-	RIPEMD160Hasher := ripemd160.New()
-	_, err := RIPEMD160Hasher.Write(publicSHA256[:])
-	if err != nil {
-		log.Panic(err)
-	}
-	publicRIPEMD160 := RIPEMD160Hasher.Sum(nil)
-
-	return publicRIPEMD160
 }
 
 // ValidateAddress check if address if valid
 func ValidateAddress(address string) bool {
-	pubKeyHash := Base58Decode([]byte(address))
+	pubKeyHash, err := b64.StdEncoding.DecodeString(address)
+	if err != nil {
+		log.Panic(err)
+	}
 	actualChecksum := pubKeyHash[len(pubKeyHash)-addressChecksumLen:]
 	version := pubKeyHash[0]
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-addressChecksumLen]

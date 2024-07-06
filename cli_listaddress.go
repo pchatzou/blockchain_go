@@ -6,11 +6,11 @@ import (
 )
 
 func (cli *CLI) listAddresses(nodeID string) {
-	wallets, err := NewWallets(nodeID)
+	users, err := NewUsers(nodeID)
 	if err != nil {
 		log.Panic(err)
 	}
-	addresses := wallets.GetAddresses()
+	addresses := users.GetAddresses()
 
 	for _, address := range addresses {
 		fmt.Println(address)
