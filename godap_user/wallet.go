@@ -1,4 +1,4 @@
-package main
+package godap_user
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
-	b64 "encoding/base64"
 	"log"
 )
 
@@ -36,7 +35,7 @@ func (w User) GetAddress() string {
 	checksum := checksum(versionedPayload)
 
 	fullPayload := append(versionedPayload, checksum...)
-	address := b64.StdEncoding.EncodeToString(fullPayload)
+	address := Encode(fullPayload)
 
 	return address
 }
@@ -50,16 +49,13 @@ func HashPubKey(pubKey []byte) [sha256.Size]byte {
 
 // ValidateAddress check if address if valid
 func ValidateAddress(address string) bool {
-	pubKeyHash, err := b64.StdEncoding.DecodeString(address)
-	if err != nil {
-		log.Panic(err)
-	}
+	pubKeyHash := Decode(address)
 	actualChecksum := pubKeyHash[len(pubKeyHash)-addressChecksumLen:]
 	version := pubKeyHash[0]
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-addressChecksumLen]
 	targetChecksum := checksum(append([]byte{version}, pubKeyHash...))
 
-	return bytes.Compare(actualChecksum, targetChecksum) == 0
+	return bytes.Equal(actualChecksum, targetChecksum)
 }
 
 // Checksum generates a checksum for a public key

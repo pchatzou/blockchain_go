@@ -1,18 +1,22 @@
-package main
+package godap_blockchain
 
-import "bytes"
+import (
+	"bytes"
+
+	"github.com/pchatzou/godap/godap_user"
+)
 
 // TXInput represents a transaction input
 type TXInput struct {
-	Txid      []byte
-	Vout      int
-	Signature []byte
-	PubKey    []byte
+	Txid       []byte
+	UserSecret godap_user.EncSecret
+	Signature  []byte
+	PubKey     []byte
 }
 
 // UsesKey checks whether the address initiated the transaction
 func (in *TXInput) UsesKey(pubKeyHash []byte) bool {
-	lockingHash := HashPubKey(in.PubKey)
+	lockingHash := godap_user.HashPubKey(in.PubKey)
 
-	return bytes.Compare(lockingHash, pubKeyHash) == 0
+	return bytes.Equal(lockingHash[:], pubKeyHash)
 }

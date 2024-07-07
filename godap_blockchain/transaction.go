@@ -1,4 +1,4 @@
-package main
+package godap_blockchain
 
 import (
 	"bytes"
@@ -17,7 +17,7 @@ import (
 
 const subsidy = 10
 
-// Transaction represents a Bitcoin transaction
+// Transaction represents a one to one user from user to access
 type Transaction struct {
 	ID   []byte
 	Vin  []TXInput

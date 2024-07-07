@@ -1,4 +1,4 @@
-package main
+package godap_blockchain
 
 import (
 	"log"
